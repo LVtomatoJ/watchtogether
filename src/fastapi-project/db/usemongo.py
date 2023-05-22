@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from ..models import User,Power,Live
 from pydantic import parse_obj_as
-
+from bson import ObjectId
 
 client = MongoClient('localhost', 27017)
 db = client['whatchtogether']
@@ -33,8 +33,12 @@ def update_user(user:User):
     # 添加一个user
     userdb = db['user']
     user_data = user.dict()
-    result = userdb.update_one(user_data)
+    user_id = user_data.pop('id')
+    print(user_id)
+    print(user_data)
+    result = userdb.replace_one({'_id':ObjectId(user_id)},user_data)
     return result.acknowledged
+
 
 def get_user_by_username(username:str):
     userdb = db['user']
