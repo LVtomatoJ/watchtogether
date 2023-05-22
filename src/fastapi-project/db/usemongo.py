@@ -1,5 +1,6 @@
 from pymongo import MongoClient
-from ..models import User,Power
+from ..models import User,Power,Live
+from pydantic import parse_obj_as
 
 
 client = MongoClient('localhost', 27017)
@@ -13,9 +14,8 @@ def init():
 
 # user操作
 
-
 def add_user(user:User):
-    #如何level不存在返回None
+    #如果level不存在返回None
     level = user.level
     if not get_power_by_level(level):
         return None
@@ -23,15 +23,27 @@ def add_user(user:User):
     userdb = db['user']
     user_data = user.dict()
     result = userdb.insert_one(user_data)
-    return result
+    return result.inserted_id
+
+def update_user(user:User):
+    #如果level不存在返回None
+    level = user.level
+    if not get_power_by_level(level):
+        return None
+    # 添加一个user
+    userdb = db['user']
+    user_data = user.dict()
+    result = userdb.update_one(user_data)
+    return result.acknowledged
 
 def get_user_by_username(username:str):
     userdb = db['user']
     result = userdb.find_one({'username':username})
     try:
-        return User(**result)
+        return User(**result,id=str(result['_id']))
     except TypeError:
         return None
+    
 # power操作
 
 def add_power(power: Power):
@@ -51,7 +63,15 @@ def get_power_by_level(level: int):
         return Power(**result)
     except TypeError:
         return None
+    
 
+#live
+
+def add_live(live:Live):
+    livedb = db['live']
+    live_data = live.dict()
+    result = livedb.insert_one(live_data)
+    return result.inserted_id
 
 if __name__ == '__main__':
     # 添加0level最大5人非admin
@@ -60,10 +80,11 @@ if __name__ == '__main__':
     # powerdb = db['power']
     # powerdb.create_index('level',unique=True)
     # print(get_power(3))
-    # print(User(username="张三丰",password="613613",phone_number='15389064060',level=4,livetime=5))
+    # print(User(username="张三丰",password="613613",phone_number='15389064060',level=4,livetime=5,is_admin=1))
     # print(get_user_by_username('张三丰'))
     # 设置phone为user中唯一索引
     # userdb = db['userdb']
     # userdb.create_index('phone_number',unique=True)
+    # get_user_by_username('张三丰')
     pass
 
