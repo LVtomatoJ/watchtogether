@@ -73,11 +73,20 @@ class InLive(BaseModel):
             raise ValueError('标题长度为3-20位')
         return v
     
-class Live(InLive):
-    id:Optional[str] = None
+class Live(BaseModel):
     user_id:str
     status:conint(ge=0,le=2)
     endtime:datetime
-    times:Optional[int] = None
+    title:str
+    max_people:conint(ge=0, le=99)
+    is_public:conint(ge=0,le=1)
+    password:str
+
+    # 标题长度校验
+    @validator('title')
+    def check_title_length(cls, v):
+        if len(v) < 3 or len(v) > 20:
+            raise ValueError('标题长度为3-20位')
+        return v
 
 
